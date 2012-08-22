@@ -88,13 +88,7 @@ void function(){
 
 	};
 
-	var b = new Table("test",["id","name","age"]);
-	var instance = {id:1,name:'iiiiupdate',age:2};
-	b.update(instance);
-	b.query("select * from test",function(tests){
-		var obj = tests[tests.length-1];
-		alert(obj.name);
-	});
+	
 	
 
 
