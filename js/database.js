@@ -6,6 +6,12 @@
 void function(){
 
 	var DB = openDatabase("meituan", "0.1", "HybridApp@meituan Web SQL Database", 5*1024*1024);
+	
+	DB.getTable = function(name){
+		return localStorage.getItem("table-"+name+"-fileds") ? 
+			new Table(name,f.split(",")) : alert("没有此表");
+	};
+
 	/**
 	 * 表示一张表
 	 * @param {String} name 表名
@@ -17,11 +23,16 @@ void function(){
 		this.name = name;
 		this.fields = fields;
 
+		if(localStorage.getItem("table-"+name+"-fileds")==null) {
+			localStorage.setItem("table-"+name+"-fileds",fields.join(","));
+		}
 		// 生成values(?,....?,?)。为插入数据做准备。
 		this.values = "?" + new Array(fields.length).join(",?");
 		// 创建 表。
 		this.executeSQL("create table "+name+" ("+fields.join(",")+")",[]);
 	};
+
+
 
 	Table.prototype = {
 
@@ -66,6 +77,10 @@ void function(){
 			this.executeSQL("delete from "+this.name+" where id = "+ instance.id)
 		},
 
+		removeAll: function(){
+			this.executeSQL("delete from "+ this.name);
+		},
+
 		// 更新数据库数据
 		update: function(instance){
 			var str = "";
@@ -84,11 +99,11 @@ void function(){
 				instance[name] = values[i];
 			});
 			return instance;
-		},
-
+		}
 
 	};
 
 
 	window.Table = Table;
+	window.DB = DB;
 }();
