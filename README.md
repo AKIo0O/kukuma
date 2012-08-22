@@ -20,7 +20,6 @@ var user = new Table("user",["id","username","password"]);
 user.insert([Date.now(),"AKI","haha"]);
 // 实例保存
 user.save(user.getInstance([Date.now(),"AKI","haha"]));
-// 或者这样：
 var instance = {id:Date.now(),name:"AKI",password:"haha"};
 user.save(instance);
 
