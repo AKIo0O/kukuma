@@ -55,6 +55,15 @@ void function(){
 			});
 		},
 
+		findById: function(id,callback){
+			this.findBy("id",id,callback);
+		},
+
+		findBy: function(key,value,callback){
+			var sql = "select * from " + this.name + " where "+key+"='"+value+"'";
+			this.findAll(sql,callback);
+		},
+
 		// 执行SQL语句
 		executeSQL:function(sql,parameters,success,error){
 
