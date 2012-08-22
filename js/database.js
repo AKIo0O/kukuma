@@ -89,23 +89,6 @@ void function(){
 
 	};
 
-	
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	window.Table = Table;
-
 }();
