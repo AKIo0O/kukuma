@@ -36,3 +36,5 @@ user.update(instance);
 var instance = {id:213123123123,name:"AKI",password:"haha-->Updated"};
 user.remove(instance);
 ```
+
+这儿有点例子：[examples](http://jsfiddle.net/JeSnS/)
