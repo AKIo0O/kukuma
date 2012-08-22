@@ -35,7 +35,7 @@ void function(){
 		findAll: function(sql,callback){
 			if(typeof sql === "function"){
 				callback = sql;
-				sql = "select * from" + this.name;
+				sql = "select * from " + this.name;
 			}
 			this.executeSQL(sql,[],function(t,r){
 				var l  = r.rows.length,ts = r.rows,arr = [];
