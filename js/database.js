@@ -32,7 +32,7 @@ void function(){
 		},
 
 		// 查询数据 by SQL 或者默认 查询整个表
-		query: function(sql,callback){
+		findAll: function(sql,callback){
 			if(typeof sql === "function"){
 				callback = sql;
 				sql = "select * from" + this.name;
@@ -84,7 +84,8 @@ void function(){
 				instance[name] = values[i];
 			});
 			return instance;
-		}
+		},
+
 
 	};
 
@@ -105,6 +106,6 @@ void function(){
 
 
 
-
+	window.Table = Table;
 
 }();
