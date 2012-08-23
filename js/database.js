@@ -22,12 +22,12 @@ void function(){
 		this.db = DB;
 		this.name = name;
 		this.fields = fields;
-
+		// 生成values(?,....?,?)。为插入数据做准备。
+		this.values = "?" + new Array(fields.length).join(",?");
+		
 		if(localStorage.getItem("table-"+name+"-fileds")==null) {
 			localStorage.setItem("table-"+name+"-fileds",fields.join(","));
 		}
-		// 生成values(?,....?,?)。为插入数据做准备。
-		this.values = "?" + new Array(fields.length).join(",?");
 		// 创建 表。
 		this.executeSQL("create table "+name+" ("+fields.join(",")+")",[]);
 	};
@@ -92,6 +92,9 @@ void function(){
 
 		// 更新数据库数据
 		update: function(instance){
+			if(Array.isArray(instance)){
+				instance = this.getInstance(instance);
+			}
 			var str = "";
 			for(var o in instance){
 				str += o == "id" ? "" : o + "='" + instance[o]+"',";
