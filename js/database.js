@@ -32,8 +32,6 @@ void function(){
 		this.executeSQL("create table "+name+" ("+fields.join(",")+")",[]);
 	};
 
-
-
 	Table.prototype = {
 
 		// 插入一条数据
