@@ -34,154 +34,153 @@
 	JL，I Love u.
 */
 
-
-
-
-
-
 void function(){
 
-	var localStorage = window.localStorage; 
+	var localStorage = window.localStorage;
 
-	var set = function(key,value){
-
-		if(Array.isArray(key)){
-			key.forEach(function(k){
-				set(k.key,key.value);
-			});
+	var mix = function(des, defaults, config){
+		if(config) mix(des,config);
+		for(var s in defaults){
+			des[s] = defaults[s];
 		}
-
-		localStorage.setItem(key,value);
-
-	};
-
-	var get = function(key){
-		return localStorage.getItem(key);
-	};
-
-	var guidlike = function(){
-
-		return Date.now()+Math.random();
-	};
-
-	// namespace
-	// 数据格式
-	// "MT.name":{}
-	// 所有的数据都是 有独特的ID。只是一个引用便可。
-	// 格式为： block : key,value
-	// set("MT","") 存放 MT数据的联系。node
-
-	var Block = function(key,value){
-		this.type = "block";
-		this.key  = key;
-		this.value = value;
-	};
-
-	var Node  = function(key){
-		this.type = "node";
-		this.key = key;
-		this.value = [];
-	};
-
-	var toLocalStorage = function(){
-		set(this.key,JSON.stringify(this.value));
-	};
-
-	Block.prototype.toLocalStorage = toLocalStorage;
-	Node.prototype.toLocalStorage  = toLocalStorage;
-
-
-	var add = function(name,target){
-
-		if(Array.isArray(target)){
-			var node = new Node(name);
-			target.forEach(function(t){
-				var key = guidlike();
-				var	block = new Block(key,t);
-				block.toLocalStorage();
-				node.value.push(key);
-			});
-			return node.toLocalStorage();
-		}
-
-		for(var key in target){
-			var node = new Node(key),
-				obj  = target[key];
-
-			var guid = guidlike(),
-				block = new Block(guid,obj);
-			node.value.push(guid);
-
-			block.toLocalStorage();
-			node.toLocalStorage();
-
-		}
-
+		return des;
 	};
 
 
-
-	var base = function(name){
-		this.name = name;
-		this.data = {};
-		set(this.name,"[]");
-	};
-
-	base.prototype = {
-
-		save: function(){
-			var keys = JSON.parse(get(this.name));
-			for(var key in this.data){
-				keys.push(key);
-				set(this.name+"."+key,JSON.stringify(this.data[key]));
-			}
-		},
-
-		add: function(key,value){
-			var me = this;
-			if (Array.isArray(key)) {
-				key.forEach(function(item){
-					me.data[item.id] = item;
-				});
-			} else if (typeof key === "object") {
-				for (var k in key) {
-					this.data[k] = key[k];
-				}
-			} else {
-				this[key] = value;
-			}
-		},
-
-		get: function(key){
-			var str = get(this.name+"."+key);
-			return JSON.parse(str);
-		}
-
-	};
-
-	window.Store = base;
-
-
-
-		// tree: JSON.parse(get(base.root)|{}),
-
-		// create: function(name){
-		// 	tree[name] = {};
-		// 	set(base.root,tree);
-		// },
+	var event = (function(){
 		
-		// update: function(url,value){
-		// 	set(url,value);
-		// },
+		var eventHandlers = {};
 
-		// remove: function(){
+		return {
+			on: function(type,handler){
+				eventHandlers[type] ? "": eventHandlers[type] = [];
+				eventHandlers[type].push(handler);
+			},
+			fire: function(type){
+				if(!eventHandlers[type]) throw new Error("没有这样的事件"+type);
+				var me = this,args = arguments;
+				eventHandlers[type].forEach(function(handler){
+					handler.apply(this,args);
+				})
+			},
+			un: function(type){
+				if(!eventHandlers[type]) throw new Error("事件"+type+"尚未注册过");
+				delete eventHandlers[type];
+			}
+
+		};
+	})();
+
+	localStorage.clear();
+
+	var helper = {
+
+		set: function(key,value){
+			localStorage.setItem(key,value);
+		},
+
+		update: function(key,value){
+			localStorage.setItem(key,value);
+		},
+
+		remove: function(key){
+			localStorage.removeItem(key);
+		},
+
+		key: function(){
+			return (Date.now()+"").slice(-4) + (Math.random()+"").slice(-5);
+		}
+
+	};
+
+	var Storage = function(name){
+		this.root = name;
+		mix(this,event);
+		this.json = {};
+	};
+
+	proto = {
+		
+		add: function(url, key, value){
+
+			var value = value || key,
+				names = url.split(".");
 			
-		// };
+			names = names.slice(1);
+			
+			var name = names.splice(-1),
+				json = this.json;
+			
+			names.forEach(function(name,i){
+				json[name] = {};
+				json = json[name];
+			});
+			if(typeof key === "string") return json[name][key] = value; 
+			Array.isArray(json[name]) ? json[name].push(value) : json[name] = value;
+		},
 
+		get: function(url){
+
+			var names = url.split("."),
+				obj   = this.json;
+			
+			names.slice(1).forEach(function(name){
+				obj = obj[name];
+			});
+
+			return obj;
+		},
+
+		remove: function(url){
+			var names = url.split("."),
+				last  = names.slice(-1)[0],
+				obj   = this.json;
+
+			if(names.length === 1 && names[0] === this.root){
+				this.json = {};
+			}
+
+			names.slice(1).forEach(function(name){
+				var tmp = obj[name];
+				if(name === last){
+					if(typeof tmp === "string"){
+						delete obj[name];
+					}else{
+						obj[name] = Array.isArray(tmp) ? [] : {}; 
+					}
+				}
+				obj = tmp;
+			});
+		},
+
+		// 保存到Localstorage
+		save: function(){
+			var obj = this.json,
+				keys = "";
+
+			for(var o in obj){
+				var target = obj[o];
+				if(typeof target === "object" && !Array.isArray(target)){
+					keys += o + ",";
+					this.save.call(mix({},{root:o,json:target}));
+					continue;
+				}
+				var key = helper.key();
+				helper.set(key,JSON.stringify(target));
+				keys += key + ",";
+			}
+			helper.set(this.root,keys);
+		},
+
+		get: function(){
+			
+		}
+	};
+
+	Storage.prototype = proto;
+	window.Storage = Storage;
 
 }();
-
-
 
 
 
