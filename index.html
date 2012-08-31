@@ -37,18 +37,6 @@
         }
 
         console.timeEnd("WebSQL");
-
-        console.time("LocalStorage");
-
-        var p = new Store("province");
-        p.add(province);
-        p.save();
-        var c = new Store("city");
-        c.add(city);
-        c.save();
-
-        console.log(JSON.stringify(p.get("province")));
-        console.timeEnd("LocalStorage");
       });
     </script>
   </body>

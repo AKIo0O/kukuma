@@ -79,8 +79,12 @@ void function(){
 			localStorage.setItem(key,value);
 		},
 
-		update: function(key,value){
-			localStorage.setItem(key,value);
+		get: function(key){
+			try{
+				return JSON.parse(localStorage.getItem(key));
+			}catch(e){
+				return localStorage.getItem(key);
+			}
 		},
 
 		remove: function(key){
@@ -88,7 +92,7 @@ void function(){
 		},
 
 		key: function(){
-			return (Date.now()+"").slice(-4) + (Math.random()+"").slice(-5);
+			return "key"+(Date.now()+"").slice(-4) + (Math.random()+"").slice(-5);
 		}
 
 	};
@@ -162,24 +166,39 @@ void function(){
 				var target = obj[o];
 				if(typeof target === "object" && !Array.isArray(target)){
 					keys += o + ",";
-					this.save.call(mix({},{root:o,json:target}));
+					proto.save.call(mix({},{root:this.root+"."+o,json:target}));
 					continue;
 				}
-				var key = helper.key();
-				helper.set(key,JSON.stringify(target));
+				var key = helper.key(),
+					tmp = {};
+				tmp[o] = target;
+				helper.set(key,JSON.stringify(tmp));
 				keys += key + ",";
 			}
 			helper.set(this.root,keys);
 		},
 
-		get: function(){
+		getJSON: function(){
+			var url  = this.root,
+				json = helper.get(url);
 			
+			if(typeof json === "object" ) return json;
+			
+			var names = json.slice(0,-1).split(","),obj = {};
+
+			names.forEach(function(name){
+				// 如果是key123456789 则Key不用加命名空间 如果是正常的key 则加上命名空间
+				/key\d{9}/.test(name) ? 
+					mix(obj,proto.getJSON.call({root:name})): 
+					obj[name] = proto.getJSON.call({root:url+"."+name});
+			});
+
+			return obj;
 		}
 	};
 
 	Storage.prototype = proto;
 	window.Storage = Storage;
-
 }();
 
 
